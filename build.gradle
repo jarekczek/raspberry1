@@ -1,0 +1,67 @@
+apply plugin: 'kotlin'
+
+buildscript {
+  ext.kotlin_version = '1.2.21'
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
+}
+
+repositories {
+  mavenCentral()
+  maven { url "http://dl.bintray.com/kotlin/ktor" }
+  maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+}
+
+dependencies {
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  compile 'org.slf4j:slf4j-jdk14:1.7.25'
+  compile 'com.pi4j:pi4j-core:1.1'
+  compile 'org.jsoup:jsoup:1.11.3'
+
+  testCompile 'junit:junit:4.12'
+  testCompile 'org.hamcrest:hamcrest-core:1.3'
+  testCompile 'org.assertj:assertj-core:3.7.0'
+  // org.assertj.core.api.Assertions.*; assertThat
+  testCompile 'org.mockito:mockito-core:2.8.9'
+}
+
+task run (type:JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'LcdNews'
+  //jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7778"
+}
+
+jar { // java plugin
+  manifest {
+    attributes(
+      "Manifest-Version": "1.0",
+      "Main-Class": tasks.run.main,
+      "Class-Path": configurations.compile.files
+        .collect { "file:///" + it + " " + it.name }
+        .join(" ")
+    )
+  }
+
+  doLast {
+    copy {
+	  from configurations.compile.files
+	  into 'build/deps'
+	}
+  }
+}
+
+task deploy(dependsOn: 'jar') {
+  doLast {
+    "c:\\program_files\\putty\\pscp.exe -pw $System.env.PSCPPASS build/libs/*.jar pi@192.168.16.110:/home/pi/java"
+            .execute()
+            .inputStream.eachLine { println(it) }
+    //"c:\\program_files\\putty\\pscp.exe -pw $System.env.PSCPPASS *.wav pi@192.168.16.110:/home/pi/java"
+    //        .execute()
+    //        .inputStream.eachLine { println(it) }
+    "c:\\program_files\\espeak\\command_line\\espeak -s 250 deployed".execute()
+  }
+}
