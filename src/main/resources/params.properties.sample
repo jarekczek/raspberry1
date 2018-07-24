@@ -1,1 +1,3 @@
-forecastUrl=http://xxx/
+forecastUrlExternal=http://xxx/
+forecastUrlOurLast=http://jarek.katowice.pl/jcwww/weather_event.php?last
+forecastUrlOurNext=http://jarek.katowice.pl/jcwww/weather_event.php

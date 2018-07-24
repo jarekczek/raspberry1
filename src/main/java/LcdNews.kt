@@ -44,9 +44,9 @@ class LcdNews() {
     }
 
     val infoProviders = listOf<InfoProvider>(
-      WeatherProvider(),
-      dateInfoProvider
-      //NetworkInfoProvider
+      WeatherProviderIndirect(),
+      dateInfoProvider,
+      NetworkInfoProvider
     )
 
     Lcd.lcdDisplay(lcdHandle, 1)
