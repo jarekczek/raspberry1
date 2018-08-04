@@ -5,6 +5,8 @@ import com.pi4j.io.gpio.RaspiPin
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent
 import com.pi4j.io.gpio.event.GpioPinListenerDigital
 import com.pi4j.wiringpi.Lcd
+import java.net.URL
+import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -116,14 +118,23 @@ class LcdNews() {
 
   inner class MotionListener() : GpioPinListenerDigital {
     var timer: Timer? = null
+
+    fun sendMotionEvent(rising: Boolean) {
+      val data = if (rising) "0->1" else "1->0"
+      val url = URL("http://jarek.katowice.pl/jcwww/events/write_event.php?code=ruch&data=$data")
+      val istr = url.openStream()!!
+    }
+
     override fun handleGpioPinDigitalStateChangeEvent(event: GpioPinDigitalStateChangeEvent?) {
       if (event?.edge == PinEdge.RISING) {
         highlightPin.high()
+        Thread { sendMotionEvent(true) }.start()
         timer?.cancel()
         timer = Timer()
         timer?.schedule(object : TimerTask() {
           override fun run() {
             highlightPin.low()
+            sendMotionEvent(false)
           }
         }, 30*1000)
       }
